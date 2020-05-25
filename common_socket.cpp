@@ -156,7 +156,7 @@ void Socket::setFd(int fd){
 }
 
 void Socket::cerrar(){
-    if(this->fd != -1){
+    if (this->fd != -1){
         shutdown(this->fd, SHUT_RDWR);
         close(this->fd);
     }
