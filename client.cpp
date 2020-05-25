@@ -15,15 +15,21 @@ void Cliente::ejecutar(){
 	std::string comando, procesado;
 	char *rta;
 	while(true){
-		std::cin >> comando;		//habra que usar getline?
+		std::cin >> comando;
 		try{
 			procesado = procesarComando(comando);
 		} catch(const std::exception &e){
-			//std::cout << e.what();			//termina el programa?
-			//continue;
+			std::cout << e.what();
+			continue;
 		}
-		enviar(procesado);
-		rta = recibir();
+
+		try{
+			enviar(procesado);
+			rta = recibir();
+		} catch(const std::exception &e){
+			std::cout << e.what();
+			return;
+		}
 
 		if(strcmp(rta, "Perdiste") == 0 || strcmp(rta, "Ganaste") == 0){
 			free(rta);
@@ -31,8 +37,6 @@ void Cliente::ejecutar(){
 		} 
 		free(rta);
 	}
-	//this->socket.cerrar();
-	//cerrar socket
 }
 
 std::string Cliente::procesarComando(std::string comando){
@@ -45,13 +49,12 @@ std::string Cliente::procesarComando(std::string comando){
 	if(comando[0] >= '1' && comando[0] <= '9'){
 		numero = std::stoi(comando);
 		if(numero > NUMERO_MAX_2_BYTES){
-			throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
+			throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda\n");
 		}
 
 		return comando;
 	}
-	throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
-	return "";
+	throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda\n");
 }
 
 void Cliente::enviar(std::string procesado){

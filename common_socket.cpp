@@ -3,14 +3,12 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <cstring>
+#include "common_miError.h"
 #include "common_socket.h"
-#include <exception>
-#include <iostream>
-#include <errno.h>
 
 Socket::Socket() : fd(-1) {}
 
-int Socket::conectar(const char* hostname, const char* port){
+void Socket::conectar(const char* hostname, const char* port){
     struct addrinfo *resultados = getAddrList(hostname, port, 0);
     struct addrinfo *ptr;
     int fd;
@@ -24,14 +22,13 @@ int Socket::conectar(const char* hostname, const char* port){
     }
 
     if (ptr == NULL)
-        return -1;
+        throw MiError("No se pudo conectar a la red\n");
 
     setFd(fd);
     freeaddrinfo(resultados);
-    return 0;
 }
 
-int Socket::bindListen(const char *hostname, const char *port){
+void Socket::bindListen(const char *hostname, const char *port){
     list *resultados = getAddrList(hostname, port, AI_PASSIVE);
     list *ptr;
     int fd;
@@ -46,20 +43,21 @@ int Socket::bindListen(const char *hostname, const char *port){
     }
 
     if (ptr == NULL){
-        return -1;
+      throw MiError("No se pudo dejar atado al socket\n");
     }
 
     setFd(fd);
     freeaddrinfo(resultados);
     if (listen(this -> fd, 10) == -1){
-        return -1;
+      throw MiError("No se pudo dejar escuchando al socket\n");
     }
-
-    return 0;
 }
 
 Socket* Socket::aceptar(){
     int accept_fd = accept(this->fd, NULL, NULL);
+    if(accept_fd == -1){
+      throw MiError("Error al intentar aceptar una conexión\n");
+    }
     Socket* peer = new Socket();
     peer->setFd(accept_fd);
     return peer;
@@ -78,37 +76,34 @@ list *Socket::getAddrList(const char *hostname, const char *port, int flag){
     return resultados;
 }
 
-int Socket::enviar(std::string msj, int longitud){
+void Socket::enviar(std::string msj, int longitud){
     int total = 0, enviado = 0;
     while (total < longitud){
        enviado = send(this->fd, &msj[total], longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           return -1;
+           throw MiError("Error en el envío del mensaje\n");
        total += enviado;
     }
-    return total;
 }
 
-int Socket::enviar_uint16(uint16_t n, int longitud){
+void Socket::enviar_uint16(uint16_t n, int longitud){
     int total = 0, enviado = 0;
     while (total < longitud){
        enviado = send(this->fd, &n, longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           return -1;
+           throw MiError("Error en el envío del número de 2 bytes\n");
        total += enviado;
     }
-    return total;
 }
 
-int Socket::enviar_uint32(uint32_t n, int longitud){
+void Socket::enviar_uint32(uint32_t n, int longitud){
     int total = 0, enviado = 0;
     while (total < longitud){
        enviado = send(this->fd, &n, longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           return -1;
+           throw MiError("Error en el envío del número de 4 bytes\n");
        total += enviado;
     }
-    return total;
 }
 
 int Socket::recibir(char buf[], int longitud){
@@ -116,7 +111,7 @@ int Socket::recibir(char buf[], int longitud){
     while (total_rec < longitud){
        recibido = recv(this->fd, &buf[total_rec], longitud - total_rec, 0);
        if (recibido == -1)
-           return -1;
+           throw MiError("Error en el la recepción del mensaje\n");
        if (recibido == 0)
            return 0;
        total_rec += recibido;
@@ -130,7 +125,7 @@ int Socket::recibir_uint16(uint16_t &n, int longitud){
     while (total_rec < longitud){
        recibido = recv(this->fd, &n, longitud - total_rec, 0);
        if (recibido == -1)
-           return -1;
+           throw MiError("Error en el la recepción del número de 2 bytes\n");
        if (recibido == 0)
            return 0;
        total_rec += recibido;
@@ -143,7 +138,7 @@ int Socket::recibir_uint32(uint32_t &n, int longitud){
     while (total_rec < longitud){
        recibido = recv(this->fd, &n, longitud - total_rec, 0);
        if (recibido == -1)
-           return -1;
+           throw MiError("Error en el la recepción del número de 4 bytes\n");
        if (recibido == 0)
            return 0;
        total_rec += recibido;

@@ -1,12 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <thread>
 #include <vector>
-#include <cstdint>
 #include <mutex>
 #include <string>
 
+//creado para poder cumplir con la restricción 
+//de 80 caracteres por línea
 typedef std::string str;
 
 class Server{
@@ -17,12 +17,22 @@ class Server{
 		unsigned int indice;
 		std::mutex m;
 
+		//devuelve la respuesta a ser enviada al cliente
+		//y resta las vidas de forma correspondiente
+		//en base al número que haya ingresado
 		str compararNumeros(str numeroCliente, str numero, int &vidas);
 
 	public:
 		explicit Server(std::vector<int> v);
+
+		//lanza el hilo aceptador y luego espera a la 'q'
+		//para salir
 		void ejecutar(const char *port);
 		int solicitarNumero();
+
+		//devuelve la respuesta a ser enviada al cliente
+		//si el comando no es "AYUDA" o "RENDIRSE", llama a la 
+		//función compararNumeros
 		str procesar(char cmd[], str nroCliente, str nro, int &vidas);
 		void estadisticas();
 };

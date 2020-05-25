@@ -1,8 +1,6 @@
-#include <iostream>
-#include <cstdint>
 #include <arpa/inet.h>
+#include <cstdint>
 #include <cstring>
-//#include "common_socket.h"
 #include "server_cliente.h"
 #include "server_aceptador.h"
 
@@ -19,11 +17,17 @@ int ThreadCliente::operator()(){
 	int vidas = VIDAS;
 	std::string respuesta;
 	while(true){
-		respuesta = recibirYProcesar(nString, vidas);
-		if(respuesta == "Desconectar"){
-			break;
+		try{
+			respuesta = recibirYProcesar(nString, vidas);
+			if(respuesta == "Desconectar"){
+				break;
+			}
+			enviar(respuesta);
+		} catch(const std::exception &e){
+			terminar();
+			aceptador.notificar();
+			return 1;
 		}
-		enviar(respuesta);
 	}
 	terminar();
 	aceptador.notificar();
@@ -39,7 +43,9 @@ std::string ThreadCliente::recibirYProcesar(std::string n, int &vidas){
 	}
 	comando[1] = '\0';
 	if(strcmp(comando, "n") == 0){
-		this->socket->recibir_uint16(nCliente, 2);
+		if(this->socket->recibir_uint16(nCliente, 2) == 0){
+			return "Desconectar";
+		}
 		nCliente = ntohs(nCliente);
 		nClienteString = std::to_string(nCliente);
 	}

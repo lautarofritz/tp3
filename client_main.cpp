@@ -14,7 +14,8 @@ int main(int argc, char* argv[]){
 		Cliente cliente(hostname, port);
 		cliente.ejecutar();
 	} catch (const std::exception &e){
-		//algo
+		std::cout << e.what();
+		return 0;
 	}
 
 	return 0;

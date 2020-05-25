@@ -6,6 +6,10 @@
 #include "server.h"
 #include "common_miError.h"
 
+//devuelve un vector con los números a ser pasados
+//al servidor
+//o devuelve una excepción si el formato de los 
+//números no es adecuado
 std::vector <int> procesarArchivo(std::string numeros);
 
 int main(int argc, char *argv[]){
@@ -20,13 +24,16 @@ int main(int argc, char *argv[]){
 
 	try{
 		v = procesarArchivo(numeros);
-		Server server(v);
-		server.ejecutar(port);
-		server.estadisticas();
 	} catch (const std::exception &e){
 		std::cerr << e.what();
 		return 1;
 	}
+
+	Server server(v);
+	server.ejecutar(port);
+	server.estadisticas();
+
+	return 0;
 }
 
 std::vector <int> procesarArchivo(std::string numeros){
@@ -42,12 +49,12 @@ std::vector <int> procesarArchivo(std::string numeros){
 	while(std::getline(archivo, linea)){
 		if(linea[0] == linea[1] || linea[0] == linea[2] || linea[2] == linea[1]){
 			archivo.close();
-			throw MiError("Error: formato de los números inválidos");
+			throw MiError("Error: formato de los números inválidos\n");
 		}
     	numero = std::stoi(linea, nullptr);
     	if(numero < 100 || numero > 999){
     		archivo.close();
-    		throw MiError("Error: archivo con números fuera de rango");
+    		throw MiError("Error: archivo con números fuera de rango\n");
     	}
     	v.push_back(numero);
     }
