@@ -55,7 +55,7 @@ void Socket::bindListen(const char *hostname, const char *port){
 
 Socket* Socket::aceptar(){
     int accept_fd = accept(this->fd, NULL, NULL);
-    if(accept_fd == -1){
+    if (accept_fd == -1){
       throw MiError("Error al intentar aceptar una conexión\n");
     }
     Socket* peer = new Socket();
