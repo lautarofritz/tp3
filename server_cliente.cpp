@@ -8,9 +8,9 @@
 
 #define VIDAS 10
 
-ThreadCliente::ThreadCliente(Socket *socket, Server &server, ThreadAceptador &a) :
+ThreadCliente::ThreadCliente(Socket *skt, Server &server, ThreadAceptador &a) :
 	server(server), finalizo(false), aceptador(a){
-		this->socket = socket;
+		this->socket = skt;
 	}
 
 int ThreadCliente::operator()(){

@@ -5,6 +5,9 @@
 #include <vector>
 #include <cstdint>
 #include <mutex>
+#include <string>
+
+typedef std::string str;
 
 class Server{
 	private:
@@ -14,13 +17,13 @@ class Server{
 		unsigned int indice;
 		std::mutex m;
 
-		std::string compararNumeros(std::string numeroCliente, std::string numero, int &vidas);
+		str compararNumeros(str numeroCliente, str numero, int &vidas);
 
 	public:
-		Server(std::vector<int> v);
+		explicit Server(std::vector<int> v);
 		void ejecutar(const char *port);
 		int solicitarNumero();
-		std::string procesar(char comando[], std::string numeroCliente, std::string numero, int &vidas);
+		str procesar(char cmd[], str nroCliente, str nro, int &vidas);
 		void estadisticas();
 };
 

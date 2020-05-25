@@ -5,6 +5,7 @@
 #include "server.h"
 #include "server_cliente.h"
 #include <mutex>
+#include <vector>
 #include <condition_variable>
 #include "server_thread.h"
 

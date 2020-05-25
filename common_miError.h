@@ -9,7 +9,7 @@ class MiError : public std::exception{
 		std::string mensaje;
 
 	public:
-		MiError(std::string mensaje);
+		explicit MiError(std::string mensaje);
 		virtual const char* what() const noexcept override;
 };
 

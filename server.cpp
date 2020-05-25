@@ -32,21 +32,21 @@ int Server::solicitarNumero(){
 	return numero;
 }
 
-std::string Server::procesar(char comando[], std::string numeroCliente, std::string numero, int &vidas){
+std::string Server::procesar(char cmd[], str nroCliente, str nro, int &vidas){
 	std::lock_guard<std::mutex> lock(m);
-	if(strcmp(comando, "h") == 0){
-		return "Comandos válidos:​\n\t​AYUDA: despliega la lista de comandos"
-		" válidos​\n\t​RENDIRSE: pierde el juego automáticamente​\n\t​"
+	if(strcmp(cmd, "h") == 0){
+		return "Comandos válidos:\n\tAYUDA: despliega la lista de comandos"
+		" válidos\n\tRENDIRSE: pierde el juego automáticamente\n\t"
 		"XXX: Número de 3 cifras a ser enviado al servidor para adivinar"
 		" el número secreto";
 	}
 
-	if(strcmp(comando, "s") == 0){
+	if(strcmp(cmd, "s") == 0){
 		perdedores++;
 		return "Perdiste";
 	}
 
-	std::string respuesta = compararNumeros(numeroCliente, numero, vidas);
+	str respuesta = compararNumeros(nroCliente, nro, vidas);
 	if(vidas == 0){
 		perdedores++;
 		return "Perdiste";
@@ -55,26 +55,26 @@ std::string Server::procesar(char comando[], std::string numeroCliente, std::str
 	return respuesta;
 }
 
-std::string Server::compararNumeros(std::string numeroCliente, std::string numero, int &vidas){
-	if(numeroCliente.length() != 3 || 
-		numeroCliente[0] == numeroCliente[1] || 
-		numeroCliente[1] == numeroCliente[2] || 
-		numeroCliente[0] == numeroCliente[2]){
+str Server::compararNumeros(str nroCliente, str nro, int &vidas){
+	if(nroCliente.length() != 3 || 
+		nroCliente[0] == nroCliente[1] || 
+		nroCliente[1] == nroCliente[2] || 
+		nroCliente[0] == nroCliente[2]){
 		vidas--;
 		return "Número inválido. Debe ser de 3 cifras no repetidas";
 	}
 
 	int cantBien = 0, cantRegular = 0;
-	std::string respuesta;
+	str respuesta;
 
-	if(numeroCliente == numero){
+	if(nroCliente == nro){
 		ganadores++;
 		return "Ganaste";
 	}
 
 	for(int i = 0; i < 3; i++){
 		for(int j = 0; j < 3; j++){
-			if(numero[i] == numeroCliente[j]){
+			if(nro[i] == nroCliente[j]){
 				if(i == j){
 					cantBien++;
 				} else{
@@ -85,17 +85,17 @@ std::string Server::compararNumeros(std::string numeroCliente, std::string numer
 	}
 
 	if(cantBien > 0 && cantRegular > 0){
-		std::string aux = std::to_string(cantBien);
+		str aux = std::to_string(cantBien);
 		respuesta = aux + " bien, ";
 		aux = std::to_string(cantRegular);
 		respuesta += aux + " regular";
-	} else if(cantBien > 0 && cantRegular == 0){
-		std::string aux = std::to_string(cantBien);
+	} else if (cantBien > 0 && cantRegular == 0){
+		str aux = std::to_string(cantBien);
 		respuesta = aux + " bien";
-	} else if(cantBien == 0 && cantRegular > 0){
-		std::string aux = std::to_string(cantRegular);
+	} else if (cantBien == 0 && cantRegular > 0){
+		str aux = std::to_string(cantRegular);
 		respuesta = aux + " regular";
-	} else if(cantBien == 0 && cantRegular == 0){
+	} else if (cantBien == 0 && cantRegular == 0){
 		respuesta = "3 mal";
 	}
 	vidas--;

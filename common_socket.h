@@ -7,7 +7,7 @@ class Socket{
 	private:
 		int fd;
 
-		list *getAddrList(const char *hostname, const char *port, const int flag);
+		list *getAddrList(const char *hostname, const char *port, int flag);
 		void setFd(int fd);
 
 	public:

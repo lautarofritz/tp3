@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "client.h"
+#include "common_miError.h"
 
 #define NUMERO_MAX_2_BYTES 65536
 
@@ -12,7 +13,7 @@ Cliente::Cliente(const char *hostname, const char *port){
 
 void Cliente::ejecutar(){
 	std::string comando, procesado;
-	char *respuesta;
+	char *rta;
 	while(true){
 		std::cin >> comando;		//habra que usar getline?
 		try{
@@ -22,13 +23,13 @@ void Cliente::ejecutar(){
 			//continue;
 		}
 		enviar(procesado);
-		respuesta = recibir();
+		rta = recibir();
 
-		if(strcmp(respuesta, "Perdiste") == 0 || strcmp(respuesta, "Ganaste") == 0){
-			free(respuesta);
+		if(strcmp(rta, "Perdiste") == 0 || strcmp(rta, "Ganaste") == 0){
+			free(rta);
 			break;
 		} 
-		free(respuesta);
+		free(rta);
 	}
 	//this->socket.cerrar();
 	//cerrar socket
@@ -44,12 +45,12 @@ std::string Cliente::procesarComando(std::string comando){
 	if(comando[0] >= '1' && comando[0] <= '9'){
 		numero = std::stoi(comando);
 		if(numero > NUMERO_MAX_2_BYTES){
-			//throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
+			throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
 		}
 
 		return comando;
 	}
-	//throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
+	throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda");
 	return "";
 }
 

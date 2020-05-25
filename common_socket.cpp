@@ -67,7 +67,7 @@ Socket* Socket::aceptar(){
     return peer;
 }
 
-list *Socket::getAddrList(const char *hostname, const char *port, const int flag){
+list *Socket::getAddrList(const char *hostname, const char *port, int flag){
 	list hints, *resultados;
 
     std::memset(&hints, 0, sizeof(struct addrinfo));
@@ -80,10 +80,10 @@ list *Socket::getAddrList(const char *hostname, const char *port, const int flag
     return resultados;
 }
 
-int Socket::enviar(std::string mensaje, int longitud){
+int Socket::enviar(std::string msj, int longitud){
     int total = 0, enviado = 0;
     while (total < longitud){
-       enviado = send(this->fd, &mensaje[total], longitud - total, MSG_NOSIGNAL);
+       enviado = send(this->fd, &msj[total], longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
            return -1;
        total += enviado;
