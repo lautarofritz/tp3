@@ -35,8 +35,8 @@ int Server::solicitarNumero(){
 std::string Server::procesar(char comando[], std::string numeroCliente, std::string numero, int &vidas){
 	std::lock_guard<std::mutex> lock(m);
 	if(strcmp(comando, "h") == 0){
-		return "Comandos válidos:​ \n\t​AYUDA: despliega la lista de comandos"
-		" válidos​ \n\t​RENDIRSE: pierde el juego automáticamente​ \n\t​"
+		return "Comandos válidos:​\n\t​AYUDA: despliega la lista de comandos"
+		" válidos​\n\t​RENDIRSE: pierde el juego automáticamente​\n\t​"
 		"XXX: Número de 3 cifras a ser enviado al servidor para adivinar"
 		" el número secreto";
 	}
