@@ -20,6 +20,8 @@ class ThreadAceptador : public Thread{
 		std::mutex m;
 		std::condition_variable cv;
 
+		void liberarClientes();
+
 	public:
 		ThreadAceptador(const char *port, Server &server);
 

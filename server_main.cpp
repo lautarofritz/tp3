@@ -8,7 +8,7 @@
 
 //devuelve un vector con los números a ser pasados
 //al servidor
-//o devuelve una excepción si el formato de los 
+//o lanza una excepción si el formato de los 
 //números no es adecuado
 std::vector <int> procesarArchivo(std::string numeros);
 

@@ -22,6 +22,7 @@ int ThreadAceptador::operator()(){
 		} catch(const std::exception &e){
 			if(!this->cerrado){
 				std::cerr << e.what();
+				liberarClientes();
 				cerrar();
 				return 1;
 			}
@@ -38,6 +39,12 @@ int ThreadAceptador::operator()(){
 			}
 		}
 	}
+
+	liberarClientes();
+	return 0;
+}
+
+void ThreadAceptador::liberarClientes(){
 	for(unsigned int i = 0; i < clientes.size(); i++){
 		std::unique_lock<std::mutex> lock(m);
 		while(!clientes[i]->termino()){
@@ -46,8 +53,6 @@ int ThreadAceptador::operator()(){
 		clientes[i]->unir();
 		delete clientes[i];
 	}
-
-	return 0;
 }
 
 void ThreadAceptador::notificar(){
