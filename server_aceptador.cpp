@@ -10,8 +10,10 @@ int ThreadAceptador::operator()(){
 		this->socket.bindListen(nullptr, port);
 		while(true){
 			Socket *peer = this->socket.aceptar();
-			if(this->cerrado)
+			if(this->cerrado){
+				delete peer;
 				break;
+			}
 			ThreadCliente* cliente = new ThreadCliente(peer, server, *this);
 			cliente->empezar();
 			clientes.push_back(cliente);

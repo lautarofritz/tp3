@@ -60,8 +60,6 @@ int Socket::bindListen(const char *hostname, const char *port){
 
 Socket* Socket::aceptar(){
     int accept_fd = accept(this->fd, NULL, NULL);
-    //if(accept_fd == -1)
-        //excepcion
     Socket* peer = new Socket();
     peer->setFd(accept_fd);
     return peer;
@@ -158,8 +156,10 @@ void Socket::setFd(int fd){
 }
 
 void Socket::cerrar(){
-    shutdown(this->fd, SHUT_RDWR);
-    close(this->fd);
+    if(this->fd != -1){
+        shutdown(this->fd, SHUT_RDWR);
+        close(this->fd);
+    }
 }
 
 Socket::~Socket(){
