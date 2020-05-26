@@ -6,6 +6,9 @@
 #include "server.h"
 #include "server_thread.h"
 
+class Socket;
+class ThreadAceptador;
+
 class ThreadCliente : public Thread{
 	private:
 		Socket *socket;
