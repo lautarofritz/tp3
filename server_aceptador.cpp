@@ -16,7 +16,7 @@ int ThreadAceptador::operator()(){
 	}
 
 	while(true){
-		Socket *peer;
+		Socket peer;
 		try{
 			peer = this->socket.aceptar();
 		} catch(const std::exception &e){
@@ -28,7 +28,7 @@ int ThreadAceptador::operator()(){
 			}
 			break;
 		}
-		ThreadCliente* cliente = new ThreadCliente(peer, server, *this);
+		ThreadCliente* cliente = new ThreadCliente(std::move(peer), server, *this);
 		cliente->empezar();
 		clientes.push_back(cliente);
 		for(unsigned int i = 0; i < clientes.size(); i++){

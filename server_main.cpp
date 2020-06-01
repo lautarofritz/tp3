@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 #include "server.h"
-#include "common_miError.h"
+#include "common_miErrorFatal.h"
 
 //devuelve un vector con los números a ser pasados
 //al servidor
@@ -43,18 +43,18 @@ std::vector <int> procesarArchivo(std::string numeros){
 	std::vector <int> v;
 	archivo.open(numeros, std::ios::in);
 	if(!archivo){
-		throw MiError("No se pudo abrir el archivo.\n");
+		throw MiErrorFatal("No se pudo abrir el archivo.\n");
 	}
 
 	while(std::getline(archivo, linea)){
 		if(linea[0] == linea[1] || linea[0] == linea[2] || linea[2] == linea[1]){
 			archivo.close();
-			throw MiError("Error: formato de los números inválidos\n");
+			throw MiErrorFatal("Error: formato de los números inválidos\n");
 		}
     	numero = std::stoi(linea, nullptr);
     	if(numero < 100 || numero > 999){
     		archivo.close();
-    		throw MiError("Error: archivo con números fuera de rango\n");
+    		throw MiErrorFatal("Error: archivo con números fuera de rango\n");
     	}
     	v.push_back(numero);
     }

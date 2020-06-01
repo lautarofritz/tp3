@@ -3,10 +3,23 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <cstring>
-#include "common_miError.h"
+#include <string>
+#include <vector>
+#include "common_miErrorFatal.h"
 #include "common_socket.h"
 
 Socket::Socket() : fd(-1) {}
+
+Socket::Socket(Socket&& other) {
+    this->fd = std::move(other.fd);
+    other.fd = -1;
+}
+
+Socket& Socket::operator=(Socket&& other){
+    this->fd = std::move(other.fd);
+    other.fd = -1;
+    return *this;
+}
 
 void Socket::conectar(const char* hostname, const char* port){
     struct addrinfo *resultados = getAddrList(hostname, port, 0);
@@ -22,7 +35,7 @@ void Socket::conectar(const char* hostname, const char* port){
     }
 
     if (ptr == NULL)
-        throw MiError("No se pudo conectar a la red\n");
+        throw MiErrorFatal("No se pudo conectar a la red\n");
 
     setFd(fd);
     freeaddrinfo(resultados);
@@ -43,24 +56,24 @@ void Socket::bindListen(const char *hostname, const char *port){
     }
 
     if (ptr == NULL){
-      throw MiError("No se pudo dejar atado al socket\n");
+      throw MiErrorFatal("No se pudo dejar atado al socket\n");
     }
 
     setFd(fd);
     freeaddrinfo(resultados);
     if (listen(this -> fd, 10) == -1){
-      throw MiError("No se pudo dejar escuchando al socket\n");
+      throw MiErrorFatal("No se pudo dejar escuchando al socket\n");
     }
 }
 
-Socket* Socket::aceptar(){
+Socket Socket::aceptar(){
     int accept_fd = accept(this->fd, NULL, NULL);
     if (accept_fd == -1){
-      throw MiError("Error al intentar aceptar una conexión\n");
+      throw MiErrorFatal("Error al intentar aceptar una conexión\n");
     }
-    Socket* peer = new Socket();
-    peer->setFd(accept_fd);
-    return peer;
+    Socket peer;
+    peer.setFd(accept_fd);
+    return std::move(peer);
 }
 
 list *Socket::getAddrList(const char *hostname, const char *port, int flag){
@@ -81,7 +94,7 @@ void Socket::enviar(std::string msj, int longitud){
     while (total < longitud){
        enviado = send(this->fd, &msj[total], longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           throw MiError("Error en el envío del mensaje\n");
+           throw MiErrorFatal("Error en el envío del mensaje\n");
        total += enviado;
     }
 }
@@ -91,7 +104,7 @@ void Socket::enviar_uint16(uint16_t n, int longitud){
     while (total < longitud){
        enviado = send(this->fd, &n, longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           throw MiError("Error en el envío del número de 2 bytes\n");
+           throw MiErrorFatal("Error en el envío del número de 2 bytes\n");
        total += enviado;
     }
 }
@@ -101,33 +114,32 @@ void Socket::enviar_uint32(uint32_t n, int longitud){
     while (total < longitud){
        enviado = send(this->fd, &n, longitud - total, MSG_NOSIGNAL);
        if (enviado == -1)
-           throw MiError("Error en el envío del número de 4 bytes\n");
+           throw MiErrorFatal("Error en el envío del número de 4 bytes\n");
        total += enviado;
     }
 }
 
-int Socket::recibir(char buf[], int longitud){
+int Socket::recibir(std::vector<char> &buf, int longitud){
     int total_rec = 0, recibido = 0;
     while (total_rec < longitud){
        recibido = recv(this->fd, &buf[total_rec], longitud - total_rec, 0);
        if (recibido == -1)
-           throw MiError("Error en el la recepción del mensaje\n");
+           throw MiErrorFatal("Error en la recepción del mensaje\n");
        if (recibido == 0)
-           return 0;
+           return total_rec;
        total_rec += recibido;
     }
     return total_rec;
 }
-
 
 int Socket::recibir_uint16(uint16_t &n, int longitud){
     int total_rec = 0, recibido = 0;
     while (total_rec < longitud){
        recibido = recv(this->fd, &n, longitud - total_rec, 0);
        if (recibido == -1)
-           throw MiError("Error en el la recepción del número de 2 bytes\n");
+           throw MiErrorFatal("Error en la recepción del número de 2 bytes\n");
        if (recibido == 0)
-           return 0;
+           return total_rec;
        total_rec += recibido;
     }
     return total_rec;
@@ -138,9 +150,9 @@ int Socket::recibir_uint32(uint32_t &n, int longitud){
     while (total_rec < longitud){
        recibido = recv(this->fd, &n, longitud - total_rec, 0);
        if (recibido == -1)
-           throw MiError("Error en el la recepción del número de 4 bytes\n");
+           throw MiErrorFatal("Error en la recepción del número de 4 bytes\n");
        if (recibido == 0)
-           return 0;
+           return total_rec;
        total_rec += recibido;
     }
     return total_rec;
@@ -151,12 +163,12 @@ void Socket::setFd(int fd){
 }
 
 void Socket::cerrar(){
-    if (this->fd != -1){
-        shutdown(this->fd, SHUT_RDWR);
-        close(this->fd);
-    }
+  if (this->fd != -1){
+      shutdown(this->fd, SHUT_RDWR);
+      close(this->fd);
+  }
 }
 
 Socket::~Socket(){
-	cerrar();
+    cerrar();
 }

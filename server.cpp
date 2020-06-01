@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstring>
+#include <vector>
 #include "server.h"
 #include "server_aceptador.h"
 
@@ -32,21 +32,21 @@ int Server::solicitarNumero(){
 	return numero;
 }
 
-std::string Server::procesar(char cmd[], str nroCliente, str nro, int &vidas){
+str Server::procesar(str comando, str nro, int &vidas){
 	std::lock_guard<std::mutex> lock(m);
-	if(strcmp(cmd, "h") == 0){
+	if(comando == "h"){
 		return "Comandos válidos:\n\tAYUDA: despliega la lista de comandos"
 		" válidos\n\tRENDIRSE: pierde el juego automáticamente\n\t"
 		"XXX: Número de 3 cifras a ser enviado al servidor para adivinar"
 		" el número secreto";
 	}
 
-	if(strcmp(cmd, "s") == 0){
+	if(comando == "s"){
 		perdedores++;
 		return "Perdiste";
 	}
 
-	str respuesta = compararNumeros(nroCliente, nro, vidas);
+	str respuesta = compararNumeros(comando, nro, vidas);
 	if(vidas == 0){
 		perdedores++;
 		return "Perdiste";

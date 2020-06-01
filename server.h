@@ -33,7 +33,7 @@ class Server{
 		//devuelve la respuesta a ser enviada al cliente
 		//si el comando no es "AYUDA" o "RENDIRSE", llama a la 
 		//función compararNumeros
-		str procesar(char cmd[], str nroCliente, str nro, int &vidas);
+		str procesar(str comando, str nro, int &vidas);
 		void estadisticas();
 };
 

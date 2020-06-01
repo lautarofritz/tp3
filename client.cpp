@@ -1,86 +1,34 @@
 #include <iostream>
-#include <arpa/inet.h>
-#include <cstdlib>
-#include <cstring>
+#include <string>
 #include "client.h"
-#include "common_miError.h"
-
-#define NUMERO_MAX_2_BYTES 65536
+#include "common_protocolo.h"
+#include "common_miErrorComando.h"
+#include "common_miErrorFatal.h"
 
 Cliente::Cliente(const char *hostname, const char *port){
 	this->socket.conectar(hostname, port);
 }
 
 void Cliente::ejecutar(){
-	std::string comando, procesado;
-	char *rta;
+	Protocolo protocolo(std::move(this->socket));
+	std::string comando, respuesta;
 	while(true){
 		std::cin >> comando;
 		try{
-			procesado = procesarComando(comando);
-		} catch(const std::exception &e){
+			protocolo.enviarComando(comando);
+			respuesta = protocolo.recibirRespuesta();
+		} catch(const MiErrorComando &e){
 			std::cout << e.what();
 			continue;
-		}
-
-		try{
-			enviar(procesado);
-			rta = recibir();
-		} catch(const std::exception &e){
+		} catch(const MiErrorFatal &e){
 			std::cout << e.what();
-			return;
-		}
-
-		if(strcmp(rta, "Perdiste") == 0 || strcmp(rta, "Ganaste") == 0){
-			free(rta);
 			break;
-		} 
-		free(rta);
-	}
-}
-
-std::string Cliente::procesarComando(std::string comando){
-	int numero;
-	if(comando == "AYUDA")
-		return "h";
-	if(comando == "RENDIRSE")
-		return "s";
-
-	if(comando[0] >= '1' && comando[0] <= '9'){
-		numero = std::stoi(comando);
-		if(numero > NUMERO_MAX_2_BYTES){
-			throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda\n");
 		}
 
-		return comando;
-	}
-	throw MiError("Error: comando inválido. Escriba AYUDA para obtener ayuda\n");
-}
-
-void Cliente::enviar(std::string procesado){
-	uint16_t numero;
-	if(procesado == "h" || procesado == "s"){
-		socket.enviar(procesado, 1);
-	} else {
-		numero = std::stoi(procesado);
-		numero = htons(numero);
-		socket.enviar("n", 1);
-		socket.enviar_uint16(numero, 2);
+		std::cout << respuesta << std::endl;
+		if(respuesta == "Ganaste" || respuesta == "Perdiste")
+			break;
 	}
 }
 
-char *Cliente::recibir(){
-	uint32_t longRespuesta;
-	char *respuesta;
-	socket.recibir_uint32(longRespuesta, sizeof(uint32_t));
-	longRespuesta = ntohl(longRespuesta);
-	respuesta = (char*) malloc(longRespuesta + 1);
-	socket.recibir(respuesta, longRespuesta);
-	respuesta[longRespuesta] = '\0';
-	std::cout << respuesta << std::endl;
-	return respuesta;
-}
-
-Cliente::~Cliente(){
-	this->socket.cerrar();
-}
+Cliente::~Cliente() {}

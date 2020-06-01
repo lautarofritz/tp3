@@ -1,28 +1,27 @@
-#include <arpa/inet.h>
-#include <cstdint>
-#include <cstring>
+#include <string>
 #include "server_cliente.h"
 #include "server_aceptador.h"
+#include "common_protocolo.h"
 
 #define VIDAS 10
 
-ThreadCliente::ThreadCliente(Socket *skt, Server &server, ThreadAceptador &a) :
-	server(server), finalizo(false), aceptador(a){
-		this->socket = skt;
-	}
+ThreadCliente::ThreadCliente(Socket skt, Server &server, ThreadAceptador &a) :
+	socket(std::move(skt)), server(server), finalizo(false), aceptador(a) {}
 
 int ThreadCliente::operator()(){
+	Protocolo protocolo(std::move(this->socket));
 	int n = this->server.solicitarNumero();
 	std::string nString = std::to_string(n);
 	int vidas = VIDAS;
-	std::string respuesta;
+	std::string respuesta, comando;
 	while(true){
 		try{
-			respuesta = recibirYProcesar(nString, vidas);
-			if(respuesta == "Desconectar"){
+			comando = protocolo.recibirComando();
+			if(comando == "Desconectar"){
 				break;
 			}
-			enviar(respuesta);
+			respuesta = server.procesar(comando, nString, vidas);
+			protocolo.enviarRespuesta(respuesta);
 		} catch(const std::exception &e){
 			terminar();
 			aceptador.notificar();
@@ -34,41 +33,10 @@ int ThreadCliente::operator()(){
 	return 0;
 }
 
-std::string ThreadCliente::recibirYProcesar(std::string n, int &vidas){
-	char comando[2];
-	uint16_t nCliente;
-	std::string nClienteString;
-	if(this->socket->recibir(comando, 1) == 0){
-		return "Desconectar";
-	}
-	comando[1] = '\0';
-	if(strcmp(comando, "n") == 0){
-		if(this->socket->recibir_uint16(nCliente, 2) == 0){
-			return "Desconectar";
-		}
-		nCliente = ntohs(nCliente);
-		nClienteString = std::to_string(nCliente);
-	}
-	std::string respuesta = server.procesar(comando, nClienteString, n, vidas);
-	return respuesta;
-}
-
-void ThreadCliente::enviar(std::string respuesta){
-	uint32_t longRespuesta = respuesta.length();
-	longRespuesta = htonl(longRespuesta);
-	socket->enviar_uint32(longRespuesta, sizeof(uint32_t));
-	socket->enviar(respuesta, respuesta.length());
-}
-
 void ThreadCliente::terminar(){
 	this->finalizo = true;
-	this->socket->cerrar();
 }
 
 bool ThreadCliente::termino(){
 	return this->finalizo;
-}
-
-ThreadCliente::~ThreadCliente(){
-	delete this->socket;
 }
