@@ -28,13 +28,13 @@ El servidor maneja ciertos recursos compartidos (por ejemplo, los números que c
 
 El hilo creado por el servidor es de clase ThreadAceptador, y se encarga de escuchar y aceptar las conexiones de los clientes (a través de un objeto de la clase Socket), para luego delegar la comunicación a otro hilo de clase ThreadCliente creado para ese propósito. Una vez que se quiere cerrar el servidor, este hilo espera que todos los clientes que se encuentren jugando en ese momento se desconecten para luego hacer lo propio. Este es un cierre "polite": naturalmente, si un cliente no termina de jugar, el servidor podría quedar abierto indefinidamente.
 
-Los hilos de los clientes (clase ThreadCliente) se encargan de la comunicación con los clientes (hay un hilo por cliente), 
-
-Los hilos de los clientes son intermediarios entre los clientes y el servidor: se encargan de recibir el comando del cliente para pasárselo al servidor, y luego de que este lo haya procesado, le devuelven la respuesta al cliente. Naturalmente, estos intercambios de información también se realizan a través de un socket.
+Los hilos de los clientes son intermediarios entre los clientes y el servidor: se encargan de recibir el comando del cliente (a través del protocolo) para pasárselo al servidor, y luego de que este lo haya procesado, le devuelven la respuesta al cliente. Naturalmente, estos intercambios de información también se realizan a través de un socket.
 
 Los hilos (tanto ThreadAceptador como ThreadCliente) heredan de la clase Thread y encapsulan el hilo dentro de ellos. Son, por lo tanto, objetos activos. Ambas clases tienen sobrecargado el método `operator()`, el cual fue definido _virtual_ en Thread para así poder usar polimorfismo.
 
-Finalmente, la clase Cliente permite al usuario el ingreso de un comando, el cual luego lleva a un formato válido para que el servidor lo pueda entender. Este comando procesado es luego transmitido por medio de un socket al hilo del cliente en el servidor.
+Finalmente, la clase Cliente permite al usuario el ingreso de un comando, el cual luego es llevado a un formato válido para que el servidor lo pueda entender por el protocolo. Este comando procesado es luego transmitido por medio de un socket al hilo del cliente en el servidor.
+
+En la reentrega, tanto los clientes como los hilos de los clientes del lado del servidor están relacionados con un objeto de la clase Protocolo, que a su vez contiene al socket. De esta manera, los participantes de la comunicación delegan la responsabilidad de la transmisión de bytes y la traducción al formato.
 
 ## Detalles de implementación y problemas encontrados
 
@@ -46,13 +46,13 @@ Una vez creado el objeto de clase ThreadAceptador, que posee su propio hilo de e
 
 ### Ingreso del comando por parte del cliente
 
-Cuando logra conectarse al servidor, el cliente lee de su entrada estándar el comando a enviar. Este es luego llevado a un formato que el servidor pueda interpretar. Si el comando no coincide con los que están programados, se lanza una excepción, y se le permite al cliente el ingreso de un nuevo comando. 
+Cuando logra conectarse al servidor, el cliente lee de su entrada estándar el comando a enviar. Este es luego llevado a un formato que el servidor pueda interpretar (este último paso lo hace el protocolo). Si el comando no coincide con los que están programados, se lanza una excepción, y se le permite al cliente el ingreso de un nuevo comando. 
 
-Si el comando ingresado es válido, el cliente se lo otorgará al socket para su envío, y luego esperará la respuesta del servidor. Este procedimiento se reitera hasta que el cliente se desconecte (sea porque perdió o porque ganó), o hasta que ocurra un fallo en la comunicación.
+Si el comando ingresado es válido, el protocolo se lo otorgará al socket para su envío, y luego esperará la respuesta del servidor. Este procedimiento se reitera hasta que el cliente se desconecte (sea porque perdió o porque ganó), o hasta que ocurra un fallo en la comunicación.
 
 ### Comunicación con el cliente
 
-Por otro lado, el hilo de comunicación quedará a la espera de recibir el comando del cliente (el cual puede venir en una o dos partes dependiendo del comando ingresado), para luego pasárselo al servidor, quien lo evaluará y responderá correspondientemente. Luego, el servidor devuelve la respuesta, y el hilo la envía en dos partes: primero la longitud, y luego el mensaje en sí. Este proceso se repite hasta que el cliente se desconecte, o hasta que ocurra algún error en la comunicación.
+Por otro lado, el hilo de comunicación quedará a la espera de recibir el comando del cliente (el cual puede venir en una o dos partes dependiendo del comando ingresado), para luego pasárselo al servidor, quien lo evaluará y responderá correspondientemente. Luego, el servidor devuelve la respuesta, y el hilo se la otorga al protocolo, para que este la envíe en dos partes: primero la longitud, y luego el mensaje en sí. Este proceso se repite hasta que el cliente se desconecte, o hasta que ocurra algún error en la comunicación.
 
 Cabe destacar que, debido a que se puede enviar y recibir más de un tipo de dato (en concreto, strings y enteros sin signo de 2 y 4 bytes), se creó un método para el envío y uno para la recepción de cada uno de estos, es decir, que en total hay tres métodos de envío y tres de recepción. De esta forma, el código se hace más legible.
 
@@ -93,9 +93,3 @@ La parte más problemática del trabajo se dio en el envío y recepción de mens
 Se había pensado en implementar el envío de números como en el Trabajo Práctico 1 (pasándolos a un array de caracteres para luego recuperarlos desde ahí), lo que habría simplificado las funciones de envío y recepción (sólo habría una de cada una, y no una por cada tipo de dato), pero por algún motivo no se pudo lograr el pasaje de número a array de caracteres. Eso también pesó en la decisión de tener una función por tipo.
 
 También costó la parte del cierre del aceptador, por el hecho que debe ser "polite", pero esto fue rápidamente resuelto empleando una _condition variable_.
-
-## Aclaraciones del alumno
-
-En clase destacaron las ventajas de utilizar RAII y move semantics a la hora de crear ciertos objetos, por ejemplo, los sockets. En el trabajo se puede ver que no se implementó de esa forma, sino que se usaron punteros, asignando memoria dinámica, la cual después hay que liberar manualmente. 
-
-Entiendo las ventajas de RAII, y lo traté de implementar con move semantics, pero por alguna razón no podía hacerlo andar. Al tener sólo una semana para presentar este trabajo práctico, y en el apuro, preferí entregar algo que ande.
