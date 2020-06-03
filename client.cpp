@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <utility>
 #include "client.h"
 #include "common_protocolo.h"
 #include "common_miErrorComando.h"

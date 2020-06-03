@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <utility>
 #include "common_protocolo.h"
 #include "common_miErrorComando.h"
 #include "common_miErrorFatal.h"
@@ -32,7 +33,7 @@ std::string Protocolo::procesarComando(std::string comando){
 	if(comando == "RENDIRSE")
 		return "s";
 
-	if(comando[0] >= '1' && comando[0] <= '9'){
+	if(comando[0] >= '0' && comando[0] <= '9' && comando.length() <= 5){
 		numero = std::stoi(comando);
 		if(numero > USHRT_MAX){
 			throw MiErrorComando("Error: comando inválido. "
